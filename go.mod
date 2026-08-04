@@ -6,7 +6,7 @@ require (
 	github.com/tinywasm/color v0.1.1
 	github.com/tinywasm/fmt v0.25.5
 	github.com/tinywasm/font v0.0.4
-	github.com/tinywasm/pdf v0.1.1
+	github.com/tinywasm/pdf v0.1.2
 )
 
 require (
