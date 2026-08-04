@@ -1,7 +1,7 @@
 ---
 PLAN: "feat: Colapsar chart.Canvas en pdf.Canvas"
 TAG: v0.1.0
-STATUS: running
+STATUS: completed
 SESSION: 9144200332693953888
 ---
 

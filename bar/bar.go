@@ -1,13 +1,13 @@
 package bar
 
 import (
-	"github.com/tinywasm/chart"
 	"github.com/tinywasm/color"
 	. "github.com/tinywasm/fmt"
+	"github.com/tinywasm/pdf"
 )
 
 type Chart struct {
-	canvas chart.Canvas
+	canvas pdf.Canvas
 	title  string
 	width  float64
 	height float64
@@ -20,7 +20,7 @@ type barData struct {
 	color color.Color
 }
 
-func New(c chart.Canvas) *Chart {
+func New(c pdf.Canvas) *Chart {
 	return &Chart{
 		canvas: c,
 	}
@@ -72,7 +72,7 @@ func (c *Chart) Draw() {
 
 	// Title
 	if c.title != "" {
-		c.canvas.SetFont("B", 12)
+		c.canvas.SetDrawingFont("B", 12)
 		c.canvas.CellFormat(c.width, 10, c.title, "", 1, "C", false, 0, "")
 		y = c.canvas.GetY() + 5
 	}
@@ -95,7 +95,7 @@ func (c *Chart) Draw() {
 	barWidth := (c.width - margin) / float64(len(c.bars))
 
 	// Draw Axes
-	c.canvas.SetDrawColor(0, 0, 0)
+	c.canvas.SetDrawColor(color.Color("#000000"))
 	c.canvas.SetLineWidth(0.2)
 	c.canvas.Line(x, y, x, y+c.height) // Y Axis
 	c.canvas.Line(x, y+c.height, x+c.width, y+c.height) // X Axis
@@ -106,18 +106,13 @@ func (c *Chart) Draw() {
 		bx := x + 10 + float64(i)*barWidth // 10 offset from Y axis
 		by := y + c.height - h
 
-		r, g, b, err := bar.color.RGB()
-		if err == nil {
-			c.canvas.SetFillColor(r, g, b)
-		} else {
-			c.canvas.SetFillColor(100, 100, 100)
-		}
+		c.canvas.SetFillColor(bar.color)
 		// Use simple rect
 		c.canvas.Rect(bx+2, by, barWidth-4, h, "F")
 
 		// Draw Text
-		c.canvas.SetTextColor(0, 0, 0)
-		c.canvas.SetFont("", 8)
+		c.canvas.SetTextColor(color.Color("#000000"))
+		c.canvas.SetDrawingFont("", 8)
 
 		// Value on top
 		valStr := Sprintf("%.1f", bar.value)
