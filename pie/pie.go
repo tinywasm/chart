@@ -2,10 +2,13 @@ package pie
 
 import (
 	"math"
+
+	"github.com/tinywasm/chart"
+	"github.com/tinywasm/color"
 )
 
-type PieChart struct {
-	doc    *Document
+type Chart struct {
+	canvas chart.Canvas
 	title  string
 	width  float64
 	height float64
@@ -15,25 +18,31 @@ type PieChart struct {
 type pieSlice struct {
 	label string
 	value float64
-	color Color
+	color color.Color
 }
 
-func (c *PieChart) Title(t string) *PieChart {
+func New(c chart.Canvas) *Chart {
+	return &Chart{
+		canvas: c,
+	}
+}
+
+func (c *Chart) Title(t string) *Chart {
 	c.title = t
 	return c
 }
 
-func (c *PieChart) Height(h float64) *PieChart {
+func (c *Chart) Height(h float64) *Chart {
 	c.height = h
 	return c
 }
 
-func (c *PieChart) Width(w float64) *PieChart {
+func (c *Chart) Width(w float64) *Chart {
 	c.width = w
 	return c
 }
 
-func (c *PieChart) AddSlice(label string, val float64, col Color) *PieChart {
+func (c *Chart) AddSlice(label string, val float64, col color.Color) *Chart {
 	c.slices = append(c.slices, pieSlice{
 		label: label,
 		value: val,
@@ -42,24 +51,24 @@ func (c *PieChart) AddSlice(label string, val float64, col Color) *PieChart {
 	return c
 }
 
-func (c *PieChart) Draw() {
+func (c *Chart) Draw() {
 	if c.width == 0 {
-		w, _ := c.doc.internal.GetPageSize()
-		l, _, r, _ := c.doc.internal.GetMargins()
+		w, _ := c.canvas.GetPageSize()
+		l, _, r, _ := c.canvas.GetMargins()
 		c.width = w - l - r
 	}
 	if c.height == 0 {
 		c.height = 100
 	}
 
-	x := c.doc.internal.GetX()
-	y := c.doc.internal.GetY()
+	x := c.canvas.GetX()
+	y := c.canvas.GetY()
 
 	// Title
 	if c.title != "" {
-		c.doc.internal.SetFont(c.doc.getActiveFontName(), "B", 12)
-		c.doc.internal.CellFormat(c.width, 10, c.title, "", 1, "C", false, 0, "")
-		y = c.doc.internal.GetY() + 5
+		c.canvas.SetFont("B", 12)
+		c.canvas.CellFormat(c.width, 10, c.title, "", 1, "C", false, 0, "")
+		y = c.canvas.GetY() + 5
 	}
 
 	total := 0.0
@@ -77,23 +86,23 @@ func (c *PieChart) Draw() {
 
 	startAngle := 0.0
 
-	c.doc.internal.SetLineWidth(0.2)
-	c.doc.internal.SetDrawColor(255, 255, 255) // White borders
+	c.canvas.SetLineWidth(0.2)
+	c.canvas.SetDrawColor(255, 255, 255) // White borders
 
 	for _, s := range c.slices {
 		angle := (s.value / total) * 360.0
 		endAngle := startAngle + angle
 
-		r, g, b, err := s.color.parse()
+		r, g, b, err := s.color.RGB()
 		if err != nil {
 			r, g, b = 100, 100, 100
 		}
-		c.doc.internal.SetFillColor(r, g, b)
+		c.canvas.SetFillColor(r, g, b)
 
-		c.doc.internal.MoveTo(cx, cy)
-		c.doc.internal.ArcTo(cx, cy, radius, radius, 0, startAngle, endAngle)
-		c.doc.internal.LineTo(cx, cy)
-		c.doc.internal.DrawPath("F")
+		c.canvas.MoveTo(cx, cy)
+		c.canvas.ArcTo(cx, cy, radius, radius, 0, startAngle, endAngle)
+		c.canvas.LineTo(cx, cy)
+		c.canvas.DrawPath("F")
 
 		// Label (Radial)
 		midAngle := startAngle + angle/2
@@ -104,16 +113,16 @@ func (c *PieChart) Draw() {
 		tx := cx + (radius * 0.7) * math.Cos(midRad)
 		ty := cy - (radius * 0.7) * math.Sin(midRad)
 
-		c.doc.internal.SetTextColor(255, 255, 255)
-		c.doc.internal.SetFont(c.doc.getActiveFontName(), "B", 10)
+		c.canvas.SetTextColor(255, 255, 255)
+		c.canvas.SetFont("B", 10)
 		txt := s.label
 		if len(txt) > 0 {
-			wTxt := c.doc.internal.GetStringWidth(txt)
-			c.doc.internal.Text(tx-wTxt/2, ty+3, txt)
+			wTxt := c.canvas.GetStringWidth(txt)
+			c.canvas.Text(tx-wTxt/2, ty+3, txt)
 		}
 
 		startAngle += angle
 	}
 
-	c.doc.internal.SetY(y + c.height + 20)
+	c.canvas.SetY(y + c.height + 20)
 }
