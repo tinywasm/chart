@@ -1,6 +1,8 @@
 ---
 PLAN: "feat: Colapsar chart.Canvas en pdf.Canvas"
 TAG: v0.1.0
+STATUS: running
+SESSION: 9144200332693953888
 ---
 
 ## Antes de escribir código: lee [CONSTRUCTION_HARNESS.md](CONSTRUCTION_HARNESS.md)
