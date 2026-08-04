@@ -3,12 +3,12 @@ package pie
 import (
 	"math"
 
-	"github.com/tinywasm/chart"
 	"github.com/tinywasm/color"
+	"github.com/tinywasm/pdf"
 )
 
 type Chart struct {
-	canvas chart.Canvas
+	canvas pdf.Canvas
 	title  string
 	width  float64
 	height float64
@@ -21,7 +21,7 @@ type pieSlice struct {
 	color color.Color
 }
 
-func New(c chart.Canvas) *Chart {
+func New(c pdf.Canvas) *Chart {
 	return &Chart{
 		canvas: c,
 	}
@@ -66,7 +66,7 @@ func (c *Chart) Draw() {
 
 	// Title
 	if c.title != "" {
-		c.canvas.SetFont("B", 12)
+		c.canvas.SetDrawingFont("B", 12)
 		c.canvas.CellFormat(c.width, 10, c.title, "", 1, "C", false, 0, "")
 		y = c.canvas.GetY() + 5
 	}
@@ -87,17 +87,13 @@ func (c *Chart) Draw() {
 	startAngle := 0.0
 
 	c.canvas.SetLineWidth(0.2)
-	c.canvas.SetDrawColor(255, 255, 255) // White borders
+	c.canvas.SetDrawColor(color.Color("#FFFFFF")) // White borders
 
 	for _, s := range c.slices {
 		angle := (s.value / total) * 360.0
 		endAngle := startAngle + angle
 
-		r, g, b, err := s.color.RGB()
-		if err != nil {
-			r, g, b = 100, 100, 100
-		}
-		c.canvas.SetFillColor(r, g, b)
+		c.canvas.SetFillColor(s.color)
 
 		c.canvas.MoveTo(cx, cy)
 		c.canvas.ArcTo(cx, cy, radius, radius, 0, startAngle, endAngle)
@@ -113,8 +109,8 @@ func (c *Chart) Draw() {
 		tx := cx + (radius * 0.7) * math.Cos(midRad)
 		ty := cy - (radius * 0.7) * math.Sin(midRad)
 
-		c.canvas.SetTextColor(255, 255, 255)
-		c.canvas.SetFont("B", 10)
+		c.canvas.SetTextColor(color.Color("#FFFFFF"))
+		c.canvas.SetDrawingFont("B", 10)
 		txt := s.label
 		if len(txt) > 0 {
 			wTxt := c.canvas.GetStringWidth(txt)

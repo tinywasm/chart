@@ -1,12 +1,12 @@
 package line
 
 import (
-	"github.com/tinywasm/chart"
 	"github.com/tinywasm/color"
+	"github.com/tinywasm/pdf"
 )
 
 type Chart struct {
-	canvas chart.Canvas
+	canvas pdf.Canvas
 	title  string
 	width  float64
 	height float64
@@ -20,7 +20,7 @@ type lineSeries struct {
 	width float64
 }
 
-func New(c chart.Canvas) *Chart {
+func New(c pdf.Canvas) *Chart {
 	return &Chart{
 		canvas: c,
 	}
@@ -66,7 +66,7 @@ func (c *Chart) Draw() {
 
 	// Title
 	if c.title != "" {
-		c.canvas.SetFont("B", 12)
+		c.canvas.SetDrawingFont("B", 12)
 		c.canvas.CellFormat(c.width, 10, c.title, "", 1, "C", false, 0, "")
 		y = c.canvas.GetY() + 5
 	}
@@ -96,20 +96,16 @@ func (c *Chart) Draw() {
 	stepX := (c.width - 20) / float64(maxPoints-1)
 
 	// Draw Axes
-	c.canvas.SetDrawColor(0, 0, 0)
+	c.canvas.SetDrawColor(color.Color("#000000"))
 	c.canvas.SetLineWidth(0.2)
 	c.canvas.Line(x, y, x, y+c.height) // Y
 	c.canvas.Line(x, y+c.height, x+c.width, y+c.height) // X
 
 	// Draw Series
 	for _, s := range c.series {
-		r, g, b, err := s.color.RGB()
-		if err != nil {
-			r, g, b = 100, 100, 100
-		}
-		c.canvas.SetDrawColor(r, g, b)
+		c.canvas.SetDrawColor(s.color)
 		c.canvas.SetLineWidth(s.width)
-		c.canvas.SetFillColor(r, g, b)
+		c.canvas.SetFillColor(s.color)
 
 		for i := 0; i < len(s.data)-1; i++ {
 			x1 := x + 10 + float64(i)*stepX

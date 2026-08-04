@@ -10,17 +10,9 @@ import (
 	"github.com/tinywasm/chart/bar"
 	"github.com/tinywasm/chart/line"
 	"github.com/tinywasm/chart/pie"
-	"github.com/tinywasm/pdf/fpdf"
+	"github.com/tinywasm/font"
+	"github.com/tinywasm/pdf"
 )
-
-type CanvasAdapter struct {
-	*fpdf.Fpdf
-	fontFamily string
-}
-
-func (a *CanvasAdapter) SetFont(styleStr string, size float64) {
-	a.Fpdf.SetFont(a.fontFamily, styleStr, size)
-}
 
 func getFontDir(t *testing.T) string {
 	cmd := exec.Command("go", "list", "-m", "-f", "{{.Dir}}", "github.com/tinywasm/pdf")
@@ -39,40 +31,25 @@ func TestCharts(t *testing.T) {
 
 	fontDir := getFontDir(t)
 
-	regData, err := os.ReadFile(filepath.Join(fontDir, "Roboto-Regular.ttf"))
+	d := font.Declare("Roboto", fontDir)
+	tf, err := pdf.LoadDeclared(d)
 	if err != nil {
-		t.Fatalf("loading regular font: %v", err)
-	}
-	boldData, err := os.ReadFile(filepath.Join(fontDir, "Roboto-Bold.ttf"))
-	if err != nil {
-		t.Fatalf("loading bold font: %v", err)
+		t.Fatalf("loading typeface: %v", err)
 	}
 
-	pdf := fpdf.New(
-		fpdf.WriteFileFunc(func(filePath string, content []byte) error {
-			return os.WriteFile(filePath, content, 0644)
-		}),
-		fpdf.ReadFileFunc(os.ReadFile),
-	)
-	pdf.AddUTF8FontFromBytes("Roboto", "", regData)
-	pdf.AddUTF8FontFromBytes("Roboto", "B", boldData)
+	doc := pdf.NewDocument(tf)
+	doc.AddPage()
 
-	pdf.AddPage()
-	pdf.SetFont("Roboto", "B", 16)
-	pdf.CellFormat(0, 8, "Chart Examples", "", 1, "L", false, 0, "")
-	pdf.Ln(5)
-
-	adapter := &CanvasAdapter{
-		Fpdf:       pdf,
-		fontFamily: "Roboto",
-	}
+	doc.SetDrawingFont("B", 16)
+	doc.CellFormat(0, 8, "Chart Examples", "", 1, "L", false, 0, "")
+	doc.SetY(doc.GetY() + 5)
 
 	// Bar Chart
-	pdf.SetFont("Roboto", "B", 12)
-	pdf.CellFormat(0, 6, "Bar Chart", "", 1, "L", false, 0, "")
-	pdf.Ln(2)
+	doc.SetDrawingFont("B", 12)
+	doc.CellFormat(0, 6, "Bar Chart", "", 1, "L", false, 0, "")
+	doc.SetY(doc.GetY() + 2)
 
-	bar.New(adapter).
+	bar.New(doc).
 		Title("Monthly Sales").
 		Height(100).
 		AddBar(120, "Jan", "#3264C8").
@@ -80,27 +57,27 @@ func TestCharts(t *testing.T) {
 		AddBar(110, "Mar", "#32C864").
 		Draw()
 
-	pdf.Ln(10)
+	doc.SetY(doc.GetY() + 10)
 
 	// Line Chart
-	pdf.SetFont("Roboto", "B", 12)
-	pdf.CellFormat(0, 6, "Line Chart", "", 1, "L", false, 0, "")
-	pdf.Ln(2)
+	doc.SetDrawingFont("B", 12)
+	doc.CellFormat(0, 6, "Line Chart", "", 1, "L", false, 0, "")
+	doc.SetY(doc.GetY() + 2)
 
-	line.New(adapter).
+	line.New(doc).
 		Title("Growth Trends").
 		Height(100).
 		AddSeries("Revenue", []float64{10, 15, 13, 17, 20, 25, 22}, "#0000FF").
 		Draw()
 
-	pdf.Ln(10)
+	doc.SetY(doc.GetY() + 10)
 
 	// Pie Chart
-	pdf.SetFont("Roboto", "B", 12)
-	pdf.CellFormat(0, 6, "Pie Chart", "", 1, "L", false, 0, "")
-	pdf.Ln(2)
+	doc.SetDrawingFont("B", 12)
+	doc.CellFormat(0, 6, "Pie Chart", "", 1, "L", false, 0, "")
+	doc.SetY(doc.GetY() + 2)
 
-	pie.New(adapter).
+	pie.New(doc).
 		Title("Market Share").
 		Height(120).
 		AddSlice("A", 40, "#FF0000").
@@ -108,9 +85,9 @@ func TestCharts(t *testing.T) {
 		AddSlice("C", 30, "#0000FF").
 		Draw()
 
-	writeErr := pdf.OutputFileAndClose(out)
+	writeErr := doc.WritePdf(out)
 	if writeErr != nil {
-		t.Fatalf("OutputFileAndClose failed: %v", writeErr)
+		t.Fatalf("WritePdf failed: %v", writeErr)
 	}
 
 	st, err := os.Stat(out)

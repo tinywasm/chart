@@ -1,8 +1,9 @@
 ---
 PLAN: "feat: Colapsar chart.Canvas en pdf.Canvas"
 TAG: v0.1.0
-STATUS: running
+STATUS: review
 SESSION: 9144200332693953888
+PR: https://github.com/tinywasm/chart/pull/2
 ---
 
 ## Antes de escribir código: lee [CONSTRUCTION_HARNESS.md](CONSTRUCTION_HARNESS.md)
