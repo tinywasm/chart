@@ -4,7 +4,7 @@ go 1.25.2
 
 require (
 	github.com/tinywasm/color v0.1.1
-	github.com/tinywasm/fmt v0.25.6
+	github.com/tinywasm/fmt v0.25.7
 	github.com/tinywasm/font v0.0.4
 	github.com/tinywasm/pdf v0.1.2
 )
